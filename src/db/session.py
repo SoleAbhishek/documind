@@ -1,7 +1,7 @@
 from typing import AsyncGenerator
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from src.config import settings
-from src.db.models import Base
+from sqlmodel import SQLModel
 
 # Async engine for FastAPI and async services
 async_engine = create_async_engine(
@@ -37,5 +37,5 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 async def init_db():
     """Create database tables if they do not exist."""
     async with async_engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+        await conn.run_sync(SQLModel.metadata.create_all)
     print("[Database] PostgreSQL tables initialized successfully.")
