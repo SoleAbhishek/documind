@@ -39,11 +39,11 @@ class Settings(BaseSettings):
 
     # Google Gemini Models
     GEMINI_API_KEY: Optional[str] = None
-    GEMINI_EMBEDDING_MODEL: str = "text-embedding-005"
+    GEMINI_EMBEDDING_MODEL: str = "gemini-embedding-001"
     GEMINI_CHAT_MODEL: str = "gemini-3.1-flash-lite"
 
     # Reranker Model
-    RERANKER_MODEL: str = "BAAI/bge-reranker-base"
+    RERANKER_MODEL: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 
 
 # Global singleton instance

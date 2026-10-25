@@ -6,7 +6,7 @@ from sqlmodel import SQLModel
 # Async engine for FastAPI and async services
 async_engine = create_async_engine(
     settings.DATABASE_URL,
-    echo=settings.DEBUG,
+    echo=False,
     future=True,
     pool_size=10,
     max_overflow=20

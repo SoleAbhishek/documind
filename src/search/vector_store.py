@@ -9,21 +9,81 @@ from src.chunking.chunker import Chunk
 os.environ["HF_HUB_DISABLE_SYMLINKS_WARNING"] = "1"
 
 
+class DenseEmbeddingWrapper:
+    """
+    Unified dense embedder wrapper supporting:
+    1. Google Gemini Embeddings (gemini-embedding-001 or gemini-embedding-2) - configurable dims (default 768 or 3072)
+    2. Fallback to local FastEmbed (BAAI/bge-small-en-v1.5) - 384 dims
+    """
+    def __init__(self, api_key: Optional[str] = None, model_name: str = "gemini-embedding-001", target_dim: int = 768):
+        self.api_key = api_key
+        self.model_name = model_name.replace("models/", "") if model_name else "gemini-embedding-001"
+        self.target_dim = target_dim
+        self.is_gemini = False
+        self._genai_client = None
+        self._fallback_embedder = None
+        self._init_embedder()
+
+    def _init_embedder(self):
+        if self.api_key and not self.api_key.startswith("AIzaSy-your") and len(self.api_key) > 20:
+            try:
+                from google import genai
+                self._genai_client = genai.Client(api_key=self.api_key)
+                self.is_gemini = True
+                print(f"[VectorStore] Active Dense Embedder: Google Gemini ({self.model_name}) - {self.target_dim} dims")
+                return
+            except Exception as e:
+                print(f"[VectorStore] Failed to initialize Gemini embedder: {e}. Falling back to local BAAI/bge-small-en-v1.5...")
+
+        from fastembed import TextEmbedding
+        print("[VectorStore] Active Dense Embedder: Local FastEmbed (BAAI/bge-small-en-v1.5) - 384 dims")
+        self._fallback_embedder = TextEmbedding(model_name="BAAI/bge-small-en-v1.5")
+        self.is_gemini = False
+
+    @property
+    def dimension(self) -> int:
+        return self.target_dim if self.is_gemini else 384
+
+    def embed(self, texts: List[str]) -> List[List[float]]:
+        if not texts:
+            return []
+        if self.is_gemini:
+            try:
+                config = {"output_dimensionality": self.target_dim} if self.target_dim else None
+                response = self._genai_client.models.embed_content(
+                    model=self.model_name,
+                    contents=texts,
+                    config=config
+                )
+                return [list(e.values) for e in response.embeddings]
+            except Exception as e:
+                print(f"[VectorStore] Gemini API call failed ({e}). Falling back dynamically to local embedder.")
+                if self._fallback_embedder is None:
+                    from fastembed import TextEmbedding
+                    self._fallback_embedder = TextEmbedding(model_name="BAAI/bge-small-en-v1.5")
+                return [v.tolist() for v in self._fallback_embedder.embed(texts)]
+        else:
+            if self._fallback_embedder is None:
+                from fastembed import TextEmbedding
+                self._fallback_embedder = TextEmbedding(model_name="BAAI/bge-small-en-v1.5")
+            return [v.tolist() for v in self._fallback_embedder.embed(texts)]
+
+
 class QdrantVectorStore:
     """
     Manages Dual-Vector (Dense + Sparse) storage and Hybrid Retrieval in Qdrant.
     
     Collection Architecture:
-    - Named Vector 'dense': 384-dimensional cosine vector (BAAI/bge-small-en-v1.5 or Gemini)
+    - Named Vector 'dense': 768 dims (Gemini) or 384 dims (local BAAI/bge-small)
     - Named Vector 'sparse': Token frequency inverted index (Qdrant/bm25)
     - Payload index: 'tenant_id' for multi-tenant data isolation
     """
 
     def __init__(self):
         self.collection_name = settings.QDRANT_COLLECTION_NAME
-        self.dense_dim = 384
         self._dense_model = None
         self._sparse_model = None
+        self.dense_dim = 384  # Default, adjusted on dense_model initialization
         
         # Connect to Qdrant (Docker with in-memory fallback)
         try:
@@ -46,9 +106,12 @@ class QdrantVectorStore:
     def dense_model(self):
         """Lazy-load dense embedder on first use."""
         if self._dense_model is None:
-            from fastembed import TextEmbedding
-            print("[VectorStore] Loading Dense embedder (BAAI/bge-small-en-v1.5)...")
-            self._dense_model = TextEmbedding(model_name="BAAI/bge-small-en-v1.5")
+            self._dense_model = DenseEmbeddingWrapper(
+                api_key=settings.GEMINI_API_KEY,
+                model_name=settings.GEMINI_EMBEDDING_MODEL,
+                target_dim=settings.DENSE_VECTOR_DIM
+            )
+            self.dense_dim = self._dense_model.dimension
         return self._dense_model
 
     @property
@@ -61,8 +124,19 @@ class QdrantVectorStore:
         return self._sparse_model
 
     def _ensure_collection(self):
-        """Creates the dual-vector collection if it does not already exist."""
+        """Creates the dual-vector collection if it does not already exist, or updates dimension."""
+        # Touch dense_model to know active dimension
+        expected_dim = self.dense_model.dimension
+        self.dense_dim = expected_dim
         try:
+            if self.client.collection_exists(self.collection_name):
+                info = self.client.get_collection(self.collection_name)
+                dense_cfg = info.config.params.vectors.get("dense")
+                existing_dim = dense_cfg.size if dense_cfg else None
+                if existing_dim and existing_dim != self.dense_dim:
+                    print(f"[VectorStore] Collection has dense_dim={existing_dim}, expected {self.dense_dim}. Recreating collection...")
+                    self.client.delete_collection(self.collection_name)
+
             if not self.client.collection_exists(self.collection_name):
                 self.client.create_collection(
                     collection_name=self.collection_name,
@@ -86,7 +160,7 @@ class QdrantVectorStore:
                     )
                 except Exception:
                     pass
-                print(f"[VectorStore] Initialized collection '{self.collection_name}' with dual vectors.")
+                print(f"[VectorStore] Initialized collection '{self.collection_name}' with dual vectors (dense_dim={self.dense_dim}).")
         except Exception as e:
             print(f"[VectorStore] Warning during collection check: {e}")
 
@@ -95,7 +169,7 @@ class QdrantVectorStore:
         if not texts:
             return [], []
 
-        dense_vecs = [v.tolist() for v in self.dense_model.embed(texts)]
+        dense_vecs = self.dense_model.embed(texts)
         sparse_raw = list(self.sparse_model.embed(texts))
         
         sparse_vecs = [
