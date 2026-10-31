@@ -92,7 +92,17 @@ class DocumentParser:
                 result_type="markdown",  # Output format: clean structured Markdown
                 num_workers=4,
                 verbose=False,
-                language="en"
+                language="en",
+                auto_mode_trigger_on_image_in_page=True,
+                auto_mode_trigger_on_table_in_page=True,
+                extract_charts=True,
+                parsing_instruction=(
+                    "You are parsing an enterprise technical document. "
+                    "Format all tables cleanly with headers and rows. "
+                    "For any diagrams, architectures, process flows, or figures (e.g. Figure 2.2-1), "
+                    "transcribe the labels, relationships, workflow steps, and provide a clear descriptive summary "
+                    "so that all visual information is fully captured in the markdown text."
+                )
             )
 
             # Synchronous call to parse document

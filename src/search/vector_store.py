@@ -50,12 +50,18 @@ class DenseEmbeddingWrapper:
         if self.is_gemini:
             try:
                 config = {"output_dimensionality": self.target_dim} if self.target_dim else None
-                response = self._genai_client.models.embed_content(
-                    model=self.model_name,
-                    contents=texts,
-                    config=config
-                )
-                return [list(e.values) for e in response.embeddings]
+                # Google Gemini API enforces a hard ceiling of max 100 items per batch request
+                batch_size = 96
+                all_embeddings: List[List[float]] = []
+                for i in range(0, len(texts), batch_size):
+                    batch = texts[i : i + batch_size]
+                    response = self._genai_client.models.embed_content(
+                        model=self.model_name,
+                        contents=batch,
+                        config=config
+                    )
+                    all_embeddings.extend([list(e.values) for e in response.embeddings])
+                return all_embeddings
             except Exception as e:
                 print(f"[VectorStore] Gemini API call failed ({e}). Falling back dynamically to local embedder.")
                 if self._fallback_embedder is None:
@@ -217,10 +223,13 @@ class QdrantVectorStore:
             )
             points.append(point)
 
-        self.client.upsert(
-            collection_name=self.collection_name,
-            points=points
-        )
+        # Upsert in safe batches of 100 points
+        batch_size = 100
+        for i in range(0, len(points), batch_size):
+            self.client.upsert(
+                collection_name=self.collection_name,
+                points=points[i : i + batch_size]
+            )
         print(f"[VectorStore] Upserted {len(points)} chunks to Qdrant for document {document_id}.")
         return point_ids
 
