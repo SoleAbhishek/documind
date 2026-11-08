@@ -1,0 +1,154 @@
+{
+  "timestamp": "20261108_092421",
+  "tenant_id": "558c93f9-1135-40ba-86f7-cd6676525ef1",
+  "total_evaluated": 2,
+  "aggregated_matrix": {
+    "matrix": {
+      "Text-heavy": {
+        "Factual": null,
+        "Semantic": null,
+        "Numerical": null,
+        "Comparative": null,
+        "Multi-hop": null,
+        "Table-based": null,
+        "Unanswerable": null
+      },
+      "Structured": {
+        "Factual": null,
+        "Semantic": null,
+        "Numerical": {
+          "count": 1,
+          "recall_1": 1.0,
+          "recall_3": 1.0,
+          "mrr": 1.0,
+          "faithfulness": 1.0,
+          "relevance": 1.0,
+          "composite_score": 1.0
+        },
+        "Comparative": null,
+        "Multi-hop": null,
+        "Table-based": {
+          "count": 1,
+          "recall_1": 0.0,
+          "recall_3": 1.0,
+          "mrr": 0.5,
+          "faithfulness": 1.0,
+          "relevance": 1.0,
+          "composite_score": 1.0
+        },
+        "Unanswerable": null
+      },
+      "Technical": {
+        "Factual": null,
+        "Semantic": null,
+        "Numerical": null,
+        "Comparative": null,
+        "Multi-hop": null,
+        "Table-based": null,
+        "Unanswerable": null
+      },
+      "Long-form": {
+        "Factual": null,
+        "Semantic": null,
+        "Numerical": null,
+        "Comparative": null,
+        "Multi-hop": null,
+        "Table-based": null,
+        "Unanswerable": null
+      },
+      "Visual": {
+        "Factual": null,
+        "Semantic": null,
+        "Numerical": null,
+        "Comparative": null,
+        "Multi-hop": null,
+        "Table-based": null,
+        "Unanswerable": null
+      },
+      "Complex": {
+        "Factual": null,
+        "Semantic": null,
+        "Numerical": null,
+        "Comparative": null,
+        "Multi-hop": null,
+        "Table-based": null,
+        "Unanswerable": null
+      },
+      "Mixed": {
+        "Factual": null,
+        "Semantic": null,
+        "Numerical": null,
+        "Comparative": null,
+        "Multi-hop": null,
+        "Table-based": null,
+        "Unanswerable": null
+      }
+    },
+    "category_summaries": {
+      "Structured": {
+        "count": 2,
+        "recall_3": 1.0,
+        "mrr": 0.75,
+        "faithfulness": 1.0,
+        "relevance": 1.0
+      }
+    },
+    "question_type_summaries": {
+      "Numerical": {
+        "count": 1,
+        "recall_3": 1.0,
+        "mrr": 1.0,
+        "faithfulness": 1.0,
+        "relevance": 1.0
+      },
+      "Table-based": {
+        "count": 1,
+        "recall_3": 1.0,
+        "mrr": 0.5,
+        "faithfulness": 1.0,
+        "relevance": 1.0
+      }
+    },
+    "total_evaluated": 2
+  },
+  "detailed_results": [
+    {
+      "id": "TC_STRUCT_TBL_01",
+      "document_category": "Structured",
+      "question_type": "Table-based",
+      "document_name": "WV.1_Size_of_the_economy.pdf",
+      "query": "According to the World Development Indicators table, what is the population (in millions) and Gross National Income (GNI) per capita for Mozambique?",
+      "generated_answer": "According to the World Development Indicators table, Mozambique has a population of 34.6 million and a Gross National Income (GNI) per capita of $550 [Source 1].",
+      "ground_truth_answer": "Mozambique has a listed population of 34.6 million, and a Gross National Income (GNI) per capita (Atlas method) of approximately $420 to $799.4 in purchasing power parity (PPP).",
+      "recall_1": 0.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "mrr": 0.5,
+      "faithfulness": 1.0,
+      "relevance": 1.0,
+      "correctness": 1.0,
+      "judge_reasoning": "The generated answer accurately extracts the data provided in the first context table for Mozambique (34.6 million population and 550 GNI per capita). While the ground truth provided a slightly ambiguous range for interpretation, the generated answer is strictly grounded in the specific data points found within the provided context, making it both faithful and semantically correct based on the source text provided.",
+      "retrieval_ms": 2280.78,
+      "generation_ms": 2246.76
+    },
+    {
+      "id": "TC_STRUCT_NUM_02",
+      "document_category": "Structured",
+      "question_type": "Numerical",
+      "document_name": "WV.1_Size_of_the_economy.pdf",
+      "query": "In the Table of Indicators for Size of the Economy, how is Gross Domestic Product (GDP) annual percent growth defined?",
+      "generated_answer": "In the Table of Indicators for Size of the Economy, GDP (annual % growth) is defined as the percentage change over each previous year of the constant price (base year 2015) series in United States dollars [Source 1]. It represents the total income earned through the production of goods and services in an economic territory during an accounting period, which can be measured using the expenditure, income, or production approaches [Source 1].",
+      "ground_truth_answer": "Gross domestic product (GDP) is the total income earned through the production of goods and services in an economy, and is measured as an annual percentage growth rate.",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "mrr": 1.0,
+      "faithfulness": 1.0,
+      "relevance": 1.0,
+      "correctness": 1.0,
+      "judge_reasoning": "The generated answer is highly accurate and fully supported by the provided context. It correctly identifies the definition of GDP annual percent growth by citing both the calculation method (percentage change of constant price 2015 USD series) and the underlying definition of GDP as the total income earned through production. It aligns perfectly with the information provided in the context, surpassing the ground truth in detail and precision.",
+      "retrieval_ms": 601.67,
+      "generation_ms": 1631.41
+    }
+  ]
+}

@@ -1,0 +1,775 @@
+{
+  "version": "2.0-full-49",
+  "created_at": "2026-11-08T20:55:00Z",
+  "description": "DocuMind Enterprise Complete 49-Cell 2D Evaluation Golden Dataset (7 Document Categories x 7 Question Types).",
+  "target_tenant_id": "558c93f9-1135-40ba-86f7-cd6676525ef1",
+  "document_categories": [
+    "Text-heavy",
+    "Structured",
+    "Technical",
+    "Long-form",
+    "Visual",
+    "Complex",
+    "Mixed"
+  ],
+  "question_types": [
+    "Factual",
+    "Semantic",
+    "Numerical",
+    "Comparative",
+    "Multi-hop",
+    "Table-based",
+    "Unanswerable"
+  ],
+  "total_cells": 49,
+  "test_cases": [
+    {
+      "id": "TC_TEXT_FACT",
+      "document_category": "Text-heavy",
+      "question_type": "Factual",
+      "document_name": "The_Road_to_Results.pdf",
+      "document_id": "43efd42f-f3b0-47a5-b9dd-085ef1e41000",
+      "query": "What is the primary role of an evaluation capacity development framework in monitoring and evaluation (M&E) systems?",
+      "ground_truth_answer": "It provides a systematic structure for strengthening institutional capacity, training evaluators, and embedding evidence-based feedback into public policymaking.",
+      "expected_keywords": [
+        "evaluation capacity",
+        "M&E",
+        "institutional"
+      ],
+      "is_unanswerable": false
+    },
+    {
+      "id": "TC_TEXT_SEM",
+      "document_category": "Text-heavy",
+      "question_type": "Semantic",
+      "document_name": "The_Road_to_Results.pdf",
+      "document_id": "43efd42f-f3b0-47a5-b9dd-085ef1e41000",
+      "query": "Why are monitoring and evaluation (M&E) systems considered vital for government governance and policy formulation?",
+      "ground_truth_answer": "M&E systems provide evidence-based feedback on government policies and program results, fostering accountability, improving transparency, and enabling public officials to allocate resources efficiently.",
+      "expected_keywords": [
+        "evidence",
+        "accountability",
+        "governance",
+        "results"
+      ],
+      "is_unanswerable": false
+    },
+    {
+      "id": "TC_TEXT_NUM",
+      "document_category": "Text-heavy",
+      "question_type": "Numerical",
+      "document_name": "The_Road_to_Results.pdf",
+      "document_id": "43efd42f-f3b0-47a5-b9dd-085ef1e41000",
+      "query": "What are the common multi-year timeframes typically required to institutionalize a national monitoring and evaluation system?",
+      "ground_truth_answer": "Building a mature, sustainable national monitoring and evaluation system typically requires sustained effort over 5 to 10 years or several political cycles.",
+      "expected_keywords": [
+        "years",
+        "time",
+        "capacity"
+      ],
+      "is_unanswerable": false
+    },
+    {
+      "id": "TC_TEXT_COMP",
+      "document_category": "Text-heavy",
+      "question_type": "Comparative",
+      "document_name": "The_Road_to_Results.pdf",
+      "document_id": "43efd42f-f3b0-47a5-b9dd-085ef1e41000",
+      "query": "In development evaluation, how does continuous monitoring differ from periodic evaluation in purpose and scope?",
+      "ground_truth_answer": "Monitoring is a continuous routine function using systematic collection of data on specified indicators to assess progress, whereas evaluation is a periodic, in-depth assessment of an ongoing or completed project's relevance, impact, and sustainability.",
+      "expected_keywords": [
+        "continuous",
+        "periodic",
+        "monitoring",
+        "evaluation"
+      ],
+      "is_unanswerable": false
+    },
+    {
+      "id": "TC_TEXT_MHOP",
+      "document_category": "Text-heavy",
+      "question_type": "Multi-hop",
+      "document_name": "The_Road_to_Results.pdf",
+      "document_id": "43efd42f-f3b0-47a5-b9dd-085ef1e41000",
+      "query": "How do diagnostic capacity assessments connect to budgetary allocations and government accountability loops?",
+      "ground_truth_answer": "Diagnostic assessments identify operational gaps in monitoring systems, guiding technical capacity interventions whose generated evidence then informs budget decisions and holds public institutions accountable.",
+      "expected_keywords": [
+        "diagnostic",
+        "budget",
+        "accountability",
+        "capacity"
+      ],
+      "is_unanswerable": false
+    },
+    {
+      "id": "TC_TEXT_TBL",
+      "document_category": "Text-heavy",
+      "question_type": "Table-based",
+      "document_name": "The_Road_to_Results.pdf",
+      "document_id": "43efd42f-f3b0-47a5-b9dd-085ef1e41000",
+      "query": "According to the evaluation criteria tables, what are the core OECD DAC criteria used to evaluate development assistance?",
+      "ground_truth_answer": "The core criteria are relevance, effectiveness, efficiency, impact, and sustainability.",
+      "expected_keywords": [
+        "relevance",
+        "effectiveness",
+        "efficiency",
+        "sustainability"
+      ],
+      "is_unanswerable": false
+    },
+    {
+      "id": "TC_TEXT_UNANS",
+      "document_category": "Text-heavy",
+      "question_type": "Unanswerable",
+      "document_name": "The_Road_to_Results.pdf",
+      "document_id": "43efd42f-f3b0-47a5-b9dd-085ef1e41000",
+      "query": "What are the quantum cryptographic hash algorithms specified in Chapter 14 of The Road to Results?",
+      "ground_truth_answer": "I cannot find sufficient information in the indexed documents to answer this question.",
+      "expected_keywords": [
+        "cannot find sufficient information"
+      ],
+      "is_unanswerable": true
+    },
+    {
+      "id": "TC_STRUCT_FACT",
+      "document_category": "Structured",
+      "question_type": "Factual",
+      "document_name": "WV.1_Size_of_the_economy.pdf",
+      "document_id": "2ed7b57e-e464-43cc-9071-6329a7458d96",
+      "query": "What is the official definition of Gross National Income (GNI) per capita under the Atlas method?",
+      "ground_truth_answer": "GNI per capita (Atlas method) is the gross national income divided by midyear population, calculated using the World Bank Atlas conversion factor to reduce exchange rate fluctuations.",
+      "expected_keywords": [
+        "GNI",
+        "Gross National Income",
+        "Atlas method"
+      ],
+      "is_unanswerable": false
+    },
+    {
+      "id": "TC_STRUCT_SEM",
+      "document_category": "Structured",
+      "question_type": "Semantic",
+      "document_name": "WV.1_Size_of_the_economy.pdf",
+      "document_id": "2ed7b57e-e464-43cc-9071-6329a7458d96",
+      "query": "What does Purchasing Power Parity (PPP) represent conceptually when comparing national economies?",
+      "ground_truth_answer": "PPP accounts for the differences in price levels between countries for an equivalent basket of goods and services, allowing more realistic international comparisons of living standards and economic size.",
+      "expected_keywords": [
+        "purchasing power parity",
+        "price",
+        "goods",
+        "services"
+      ],
+      "is_unanswerable": false
+    },
+    {
+      "id": "TC_STRUCT_NUM",
+      "document_category": "Structured",
+      "question_type": "Numerical",
+      "document_name": "WV.1_Size_of_the_economy.pdf",
+      "document_id": "2ed7b57e-e464-43cc-9071-6329a7458d96",
+      "query": "In the Table of Indicators for Size of the Economy, how is Gross Domestic Product (GDP) annual percent growth defined?",
+      "ground_truth_answer": "Gross domestic product (GDP) is the total income earned through the production of goods and services in an economy, and is measured as an annual percentage growth rate.",
+      "expected_keywords": [
+        "Gross domestic product",
+        "total income",
+        "growth"
+      ],
+      "is_unanswerable": false
+    },
+    {
+      "id": "TC_STRUCT_COMP",
+      "document_category": "Structured",
+      "question_type": "Comparative",
+      "document_name": "WV.1_Size_of_the_economy.pdf",
+      "document_id": "2ed7b57e-e464-43cc-9071-6329a7458d96",
+      "query": "Compare the population numbers listed for Afghanistan and Mozambique in the economy tables.",
+      "ground_truth_answer": "Afghanistan is listed with approximately 40.1 to 41.1 million people, while Mozambique is listed with approximately 34.6 million people.",
+      "expected_keywords": [
+        "Afghanistan",
+        "Mozambique",
+        "population"
+      ],
+      "is_unanswerable": false
+    },
+    {
+      "id": "TC_STRUCT_MHOP",
+      "document_category": "Structured",
+      "question_type": "Multi-hop",
+      "document_name": "WV.1_Size_of_the_economy.pdf",
+      "document_id": "2ed7b57e-e464-43cc-9071-6329a7458d96",
+      "query": "Based on the economic tables, how does a country's total population and GNI per capita combine to reflect its total economic scale?",
+      "ground_truth_answer": "Total GNI represents the aggregate national economic scale obtained by multiplying per capita income by the midyear population count.",
+      "expected_keywords": [
+        "population",
+        "GNI",
+        "per capita"
+      ],
+      "is_unanswerable": false
+    },
+    {
+      "id": "TC_STRUCT_TBL",
+      "document_category": "Structured",
+      "question_type": "Table-based",
+      "document_name": "WV.1_Size_of_the_economy.pdf",
+      "document_id": "2ed7b57e-e464-43cc-9071-6329a7458d96",
+      "query": "According to the World Development Indicators table, what is the population (in millions) and Gross National Income (GNI) per capita for Mozambique?",
+      "ground_truth_answer": "Mozambique has a listed population of 34.6 million, and a Gross National Income (GNI) per capita (Atlas method) of approximately $420 to $799.4 in purchasing power parity (PPP).",
+      "expected_keywords": [
+        "Mozambique",
+        "34.6",
+        "799.4"
+      ],
+      "is_unanswerable": false
+    },
+    {
+      "id": "TC_STRUCT_UNANS",
+      "document_category": "Structured",
+      "question_type": "Unanswerable",
+      "document_name": "WV.1_Size_of_the_economy.pdf",
+      "document_id": "2ed7b57e-e464-43cc-9071-6329a7458d96",
+      "query": "What is the Bitcoin crypto trading volume reported for Mozambique in the 2024 economic table?",
+      "ground_truth_answer": "I cannot find sufficient information in the indexed documents to answer this question.",
+      "expected_keywords": [
+        "cannot find sufficient information"
+      ],
+      "is_unanswerable": true
+    },
+    {
+      "id": "TC_TECH_FACT",
+      "document_category": "Technical",
+      "question_type": "Factual",
+      "document_name": "postgresql-17-US.pdf",
+      "document_id": "16d17c45-e073-4e5b-a8ae-65783e92a0d1",
+      "query": "What is the primary purpose and advantage of using the CREATE INDEX CONCURRENTLY command in PostgreSQL?",
+      "ground_truth_answer": "The CREATE INDEX CONCURRENTLY command allows an index to be built without acquiring an exclusive write lock on the table, permitting normal reads and writes (SELECT, INSERT, UPDATE, DELETE) to continue concurrently.",
+      "expected_keywords": [
+        "CREATE INDEX",
+        "CONCURRENTLY",
+        "lock"
+      ],
+      "is_unanswerable": false
+    },
+    {
+      "id": "TC_TECH_SEM",
+      "document_category": "Technical",
+      "question_type": "Semantic",
+      "document_name": "postgresql-17-US.pdf",
+      "document_id": "16d17c45-e073-4e5b-a8ae-65783e92a0d1",
+      "query": "How does Multiversion Concurrency Control (MVCC) eliminate read-write contention in PostgreSQL?",
+      "ground_truth_answer": "MVCC provides query snapshot isolation: each transaction operates on a consistent snapshot of data, so readers never block writers and writers never block readers.",
+      "expected_keywords": [
+        "readers",
+        "writers",
+        "snapshot",
+        "block"
+      ],
+      "is_unanswerable": false
+    },
+    {
+      "id": "TC_TECH_NUM",
+      "document_category": "Technical",
+      "question_type": "Numerical",
+      "document_name": "postgresql-17-US.pdf",
+      "document_id": "16d17c45-e073-4e5b-a8ae-65783e92a0d1",
+      "query": "What is the default memory setting for shared_buffers in PostgreSQL server configuration?",
+      "ground_truth_answer": "The default value for shared_buffers is typically 128 megabytes (128MB).",
+      "expected_keywords": [
+        "shared_buffers",
+        "128MB",
+        "megabytes"
+      ],
+      "is_unanswerable": false
+    },
+    {
+      "id": "TC_TECH_COMP",
+      "document_category": "Technical",
+      "question_type": "Comparative",
+      "document_name": "postgresql-17-US.pdf",
+      "document_id": "16d17c45-e073-4e5b-a8ae-65783e92a0d1",
+      "query": "How does standard CREATE INDEX compare to CREATE INDEX CONCURRENTLY with respect to table locking and execution time?",
+      "ground_truth_answer": "Standard CREATE INDEX acquires a ShareLock, blocking writes (INSERT, UPDATE, DELETE) to the table until completion, but executes faster. CREATE INDEX CONCURRENTLY allows concurrent write transactions to proceed without locking the table, but takes significantly longer to execute and requires multiple transaction passes.",
+      "expected_keywords": [
+        "ShareLock",
+        "blocking",
+        "concurrent",
+        "longer"
+      ],
+      "is_unanswerable": false
+    },
+    {
+      "id": "TC_TECH_MHOP",
+      "document_category": "Technical",
+      "question_type": "Multi-hop",
+      "document_name": "postgresql-17-US.pdf",
+      "document_id": "16d17c45-e073-4e5b-a8ae-65783e92a0d1",
+      "query": "How do autovacuum worker processes determine when a table has accumulated enough dead tuples to trigger automatic vacuuming?",
+      "ground_truth_answer": "Autovacuum checks whether the number of dead tuples exceeds the autovacuum_vacuum_threshold plus the autovacuum_vacuum_scale_factor multiplied by the total number of table tuples.",
+      "expected_keywords": [
+        "autovacuum",
+        "dead tuples",
+        "threshold",
+        "scale_factor"
+      ],
+      "is_unanswerable": false
+    },
+    {
+      "id": "TC_TECH_TBL",
+      "document_category": "Technical",
+      "question_type": "Table-based",
+      "document_name": "postgresql-17-US.pdf",
+      "document_id": "16d17c45-e073-4e5b-a8ae-65783e92a0d1",
+      "query": "According to Table 27.44 on CREATE INDEX Phases, what does the phase 'waiting for writers before validation' indicate?",
+      "ground_truth_answer": "It indicates that CREATE INDEX CONCURRENTLY or REINDEX CONCURRENTLY is waiting for transactions with write locks on the table to finish before proceeding to validation.",
+      "expected_keywords": [
+        "waiting for writers",
+        "validation",
+        "transactions"
+      ],
+      "is_unanswerable": false
+    },
+    {
+      "id": "TC_TECH_UNANS",
+      "document_category": "Technical",
+      "question_type": "Unanswerable",
+      "document_name": "postgresql-17-US.pdf",
+      "document_id": "16d17c45-e073-4e5b-a8ae-65783e92a0d1",
+      "query": "What is the configuration parameter for connecting Apache Kafka streaming brokers inside the postgresql.conf file?",
+      "ground_truth_answer": "I cannot find sufficient information in the indexed documents to answer this question.",
+      "expected_keywords": [
+        "cannot find sufficient information"
+      ],
+      "is_unanswerable": true
+    },
+    {
+      "id": "TC_LONG_FACT",
+      "document_category": "Long-form",
+      "question_type": "Factual",
+      "document_name": "postgresql-17-US.pdf",
+      "document_id": "16d17c45-e073-4e5b-a8ae-65783e92a0d1",
+      "query": "What is the purpose of the PostgreSQL WAL (Write-Ahead Log) writer background process?",
+      "ground_truth_answer": "The WAL writer process continuously writes and flushes WAL buffers to disk in order to avoid flushes during user query transactions, reducing transaction commit latency.",
+      "expected_keywords": [
+        "WAL",
+        "writer",
+        "flush",
+        "disk"
+      ],
+      "is_unanswerable": false
+    },
+    {
+      "id": "TC_LONG_SEM",
+      "document_category": "Long-form",
+      "question_type": "Semantic",
+      "document_name": "postgresql-17-US.pdf",
+      "document_id": "16d17c45-e073-4e5b-a8ae-65783e92a0d1",
+      "query": "Explain what serialization anomalies occur in Repeatable Read isolation that are prevented in Serializable isolation.",
+      "ground_truth_answer": "Repeatable Read prevents dirty reads, non-repeatable reads, and phantom reads, but is vulnerable to serialization anomalies such as write skew. Serializable isolation uses predicate locking or SSI to guarantee that transactions execute as if strictly serial.",
+      "expected_keywords": [
+        "serialization",
+        "write skew",
+        "isolation",
+        "Serializable"
+      ],
+      "is_unanswerable": false
+    },
+    {
+      "id": "TC_LONG_NUM",
+      "document_category": "Long-form",
+      "question_type": "Numerical",
+      "document_name": "postgresql-17-US.pdf",
+      "document_id": "16d17c45-e073-4e5b-a8ae-65783e92a0d1",
+      "query": "What is the maximum length in bytes for SQL object identifiers (NAMEDATALEN) by default in PostgreSQL?",
+      "ground_truth_answer": "The default NAMEDATALEN is 64 bytes, meaning the maximum identifier length is 63 bytes (characters) plus the null terminator.",
+      "expected_keywords": [
+        "64",
+        "63",
+        "NAMEDATALEN",
+        "bytes"
+      ],
+      "is_unanswerable": false
+    },
+    {
+      "id": "TC_LONG_COMP",
+      "document_category": "Long-form",
+      "question_type": "Comparative",
+      "document_name": "postgresql-17-US.pdf",
+      "document_id": "16d17c45-e073-4e5b-a8ae-65783e92a0d1",
+      "query": "Compare physical streaming replication with logical replication in PostgreSQL.",
+      "ground_truth_answer": "Physical streaming replication replicates the exact binary database cluster block-by-block using WAL records, whereas logical replication replicates individual data changes based on logical decoding of row mutations, allowing selective table publishing and cross-version replication.",
+      "expected_keywords": [
+        "physical",
+        "logical",
+        "WAL",
+        "replication"
+      ],
+      "is_unanswerable": false
+    },
+    {
+      "id": "TC_LONG_MHOP",
+      "document_category": "Long-form",
+      "question_type": "Multi-hop",
+      "document_name": "postgresql-17-US.pdf",
+      "document_id": "16d17c45-e073-4e5b-a8ae-65783e92a0d1",
+      "query": "Explain how Write-Ahead Logging (WAL) interacts with checkpoints to guarantee durability and fast crash recovery in PostgreSQL.",
+      "ground_truth_answer": "In PostgreSQL, all database modifications are written to WAL before data pages are flushed to disk. During a checkpoint, all dirty in-memory data buffers are written to disk and a checkpoint record is logged in the WAL. During crash recovery, the server only needs to replay WAL logs from the last checkpoint forward, guaranteeing durability while minimizing recovery time.",
+      "expected_keywords": [
+        "WAL",
+        "checkpoint",
+        "flush",
+        "replay",
+        "recovery"
+      ],
+      "is_unanswerable": false
+    },
+    {
+      "id": "TC_LONG_TBL",
+      "document_category": "Long-form",
+      "question_type": "Table-based",
+      "document_name": "postgresql-17-US.pdf",
+      "document_id": "16d17c45-e073-4e5b-a8ae-65783e92a0d1",
+      "query": "What information is stored in the pg_database system catalog table according to the system catalog documentation?",
+      "ground_truth_answer": "pg_database stores information about available databases in the cluster, including datname, datdba (database owner), encoding, datcollate, and default tablespace.",
+      "expected_keywords": [
+        "pg_database",
+        "datname",
+        "owner",
+        "encoding"
+      ],
+      "is_unanswerable": false
+    },
+    {
+      "id": "TC_LONG_UNANS",
+      "document_category": "Long-form",
+      "question_type": "Unanswerable",
+      "document_name": "postgresql-17-US.pdf",
+      "document_id": "16d17c45-e073-4e5b-a8ae-65783e92a0d1",
+      "query": "What are the configuration flags for enabling Snowflake micro-partition pruning inside PostgreSQL 17?",
+      "ground_truth_answer": "I cannot find sufficient information in the indexed documents to answer this question.",
+      "expected_keywords": [
+        "cannot find sufficient information"
+      ],
+      "is_unanswerable": true
+    },
+    {
+      "id": "TC_VIS_FACT",
+      "document_category": "Visual",
+      "question_type": "Factual",
+      "document_name": "nasa.pdf",
+      "document_id": "1977db67-7f70-445b-b424-a4c1dbd237b7",
+      "query": "According to the NASA Program/Project Life Cycle documentation, what is the core purpose of Pre-Phase A: Concept Studies?",
+      "ground_truth_answer": "The purpose of Pre-Phase A is to produce a broad spectrum of ideas and alternative mission concepts, evaluate their feasibility, and determine whether a viable concept exists to meet the proposed mission objectives.",
+      "expected_keywords": [
+        "Pre-Phase A",
+        "Concept Studies",
+        "feasibility",
+        "alternatives"
+      ],
+      "is_unanswerable": false
+    },
+    {
+      "id": "TC_VIS_SEM",
+      "document_category": "Visual",
+      "question_type": "Semantic",
+      "document_name": "nasa.pdf",
+      "document_id": "1977db67-7f70-445b-b424-a4c1dbd237b7",
+      "query": "How does the NASA Systems Engineering 'V-model' illustrate the relationship between design decomposition and system verification?",
+      "ground_truth_answer": "The left leg of the V represents decomposing customer expectations into detailed subsystem requirements and design, while the right leg represents integrating components, verifying against design requirements, and validating against stakeholder needs.",
+      "expected_keywords": [
+        "decomposition",
+        "verification",
+        "validation",
+        "integration"
+      ],
+      "is_unanswerable": false
+    },
+    {
+      "id": "TC_VIS_NUM",
+      "document_category": "Visual",
+      "question_type": "Numerical",
+      "document_name": "nasa.pdf",
+      "document_id": "1977db67-7f70-445b-b424-a4c1dbd237b7",
+      "query": "What Technology Readiness Level (TRL) is typically expected to be demonstrated before entering Phase C (PDR milestone)?",
+      "ground_truth_answer": "Technology Readiness Level 6 (TRL 6) is typically required by Preliminary Design Review (PDR) / Key Decision Point C (KDP C) for all critical technologies.",
+      "expected_keywords": [
+        "TRL 6",
+        "TRL",
+        "technology readiness"
+      ],
+      "is_unanswerable": false
+    },
+    {
+      "id": "TC_VIS_COMP",
+      "document_category": "Visual",
+      "question_type": "Comparative",
+      "document_name": "nasa.pdf",
+      "document_id": "1977db67-7f70-445b-b424-a4c1dbd237b7",
+      "query": "In the NASA project lifecycle stages, how does the focus of Phase A (Concept & Technology Development) differ from Phase B (Preliminary Design)?",
+      "ground_truth_answer": "Phase A focuses on establishing the system baseline architecture and maturing required technologies, while Phase B focuses on completing the preliminary design, establishing subsystem requirements, and finalizing baseline cost and schedule commitments prior to final design.",
+      "expected_keywords": [
+        "Phase A",
+        "Phase B",
+        "preliminary design",
+        "baseline"
+      ],
+      "is_unanswerable": false
+    },
+    {
+      "id": "TC_VIS_MHOP",
+      "document_category": "Visual",
+      "question_type": "Multi-hop",
+      "document_name": "nasa.pdf",
+      "document_id": "1977db67-7f70-445b-b424-a4c1dbd237b7",
+      "query": "How do Technical Performance Measures (TPMs) evolve from stakeholder expectations through lifecycle reviews to final flight verification?",
+      "ground_truth_answer": "Stakeholder expectations establish key technical metrics (e.g. mass, power margins), which are tracked as TPMs across Phase A and B reviews, evaluated against design allocations at Critical Design Review (CDR), and verified in system testing.",
+      "expected_keywords": [
+        "TPM",
+        "technical performance",
+        "margins",
+        "review"
+      ],
+      "is_unanswerable": false
+    },
+    {
+      "id": "TC_VIS_TBL",
+      "document_category": "Visual",
+      "question_type": "Table-based",
+      "document_name": "nasa.pdf",
+      "document_id": "1977db67-7f70-445b-b424-a4c1dbd237b7",
+      "query": "According to the life-cycle phase management tables in the NASA Handbook, what key review or decision milestone occurs between Phase A and Phase B?",
+      "ground_truth_answer": "Key Decision Point B (KDP B), typically following the System Requirements Review (SRR) or System Definition Review (SDR).",
+      "expected_keywords": [
+        "KDP B",
+        "Phase B",
+        "Key Decision Point"
+      ],
+      "is_unanswerable": false
+    },
+    {
+      "id": "TC_VIS_UNANS",
+      "document_category": "Visual",
+      "question_type": "Unanswerable",
+      "document_name": "nasa.pdf",
+      "document_id": "1977db67-7f70-445b-b424-a4c1dbd237b7",
+      "query": "What are the SpaceX Starship Raptor engine vacuum thrust telemetry specifications in the NASA systems engineering handbook?",
+      "ground_truth_answer": "I cannot find sufficient information in the indexed documents to answer this question.",
+      "expected_keywords": [
+        "cannot find sufficient information"
+      ],
+      "is_unanswerable": true
+    },
+    {
+      "id": "TC_CMPLX_FACT",
+      "document_category": "Complex",
+      "question_type": "Factual",
+      "document_name": "Handwritten-Concern-Form-reporting-Domestic-Abuse-Good-Example.pdf",
+      "document_id": "e773b7bb-a01c-49e2-b784-98aaa44f8b59",
+      "query": "In the Safeguarding Adults Concern Form, which section is designated for capturing the details of the adult at risk of harm or abuse?",
+      "ground_truth_answer": "Section 1 (Section 1: Details of Adult at Risk of Harm or Abuse) is designated for recording the details of the adult at risk.",
+      "expected_keywords": [
+        "Section 1",
+        "Adult at Risk"
+      ],
+      "is_unanswerable": false
+    },
+    {
+      "id": "TC_CMPLX_SEM",
+      "document_category": "Complex",
+      "question_type": "Semantic",
+      "document_name": "Handwritten-Concern-Form-reporting-Domestic-Abuse-Good-Example.pdf",
+      "document_id": "e773b7bb-a01c-49e2-b784-98aaa44f8b59",
+      "query": "What is the primary function of the Inter-Agency Safeguarding Adults Concern Form in community risk management?",
+      "ground_truth_answer": "It serves as an inter-agency documentation and referral instrument to formally report incidents or concerns of abuse or neglect, ensuring multi-agency coordination to protect vulnerable adults.",
+      "expected_keywords": [
+        "safeguarding",
+        "concern",
+        "report",
+        "protect"
+      ],
+      "is_unanswerable": false
+    },
+    {
+      "id": "TC_CMPLX_NUM",
+      "document_category": "Complex",
+      "question_type": "Numerical",
+      "document_name": "Handwritten-Concern-Form-reporting-Domestic-Abuse-Good-Example.pdf",
+      "document_id": "e773b7bb-a01c-49e2-b784-98aaa44f8b59",
+      "query": "What contact numbers or dates of birth are recorded in the personal information sections of the safeguarding concern form?",
+      "ground_truth_answer": "The personal information records telephone or mobile contact details and dates of birth for the adult at risk and the person alleged to have caused harm.",
+      "expected_keywords": [
+        "contact",
+        "date of birth",
+        "telephone"
+      ],
+      "is_unanswerable": false
+    },
+    {
+      "id": "TC_CMPLX_COMP",
+      "document_category": "Complex",
+      "question_type": "Comparative",
+      "document_name": "Handwritten-Concern-Form-reporting-Domestic-Abuse-Good-Example.pdf",
+      "document_id": "e773b7bb-a01c-49e2-b784-98aaa44f8b59",
+      "query": "In the safeguarding concern form, how does Section 1 (Adult at Risk) differ from Section 5 (Person Alleged to Have Caused Harm)?",
+      "ground_truth_answer": "Section 1 focuses on identifying the vulnerable adult, their vulnerabilities, and care needs, whereas Section 5 records the identity, relationship, and characteristics of the individual alleged to have committed harm or abuse.",
+      "expected_keywords": [
+        "Section 1",
+        "Section 5",
+        "caused harm",
+        "adult at risk"
+      ],
+      "is_unanswerable": false
+    },
+    {
+      "id": "TC_CMPLX_MHOP",
+      "document_category": "Complex",
+      "question_type": "Multi-hop",
+      "document_name": "Handwritten-Concern-Form-reporting-Domestic-Abuse-Good-Example.pdf",
+      "document_id": "e773b7bb-a01c-49e2-b784-98aaa44f8b59",
+      "query": "How do the incident details described in Section 3 translate into the multi-agency actions and police referrals recorded in Section 4?",
+      "ground_truth_answer": "Section 3 outlines the immediate risks and nature of domestic abuse observed, which directly triggers Section 4 statutory safeguarding referrals to adult social care and local police authorities.",
+      "expected_keywords": [
+        "incident",
+        "action",
+        "police",
+        "referral"
+      ],
+      "is_unanswerable": false
+    },
+    {
+      "id": "TC_CMPLX_TBL",
+      "document_category": "Complex",
+      "question_type": "Table-based",
+      "document_name": "Handwritten-Concern-Form-reporting-Domestic-Abuse-Good-Example.pdf",
+      "document_id": "e773b7bb-a01c-49e2-b784-98aaa44f8b59",
+      "query": "According to the table in Section 5 (Details of the Person Alleged to Have Caused Harm), what attributes are recorded about the alleged person?",
+      "ground_truth_answer": "The table records Name, Date of Birth, Gender, Relationship to the adult at risk, and Address/Contact details.",
+      "expected_keywords": [
+        "Name",
+        "Date of Birth",
+        "Gender",
+        "Relationship"
+      ],
+      "is_unanswerable": false
+    },
+    {
+      "id": "TC_CMPLX_UNANS",
+      "document_category": "Complex",
+      "question_type": "Unanswerable",
+      "document_name": "Handwritten-Concern-Form-reporting-Domestic-Abuse-Good-Example.pdf",
+      "document_id": "e773b7bb-a01c-49e2-b784-98aaa44f8b59",
+      "query": "What is the Bitcoin crypto wallet address of the reporting social worker in the safeguarding form?",
+      "ground_truth_answer": "I cannot find sufficient information in the indexed documents to answer this question.",
+      "expected_keywords": [
+        "cannot find sufficient information"
+      ],
+      "is_unanswerable": true
+    },
+    {
+      "id": "TC_MIX_FACT",
+      "document_category": "Mixed",
+      "question_type": "Factual",
+      "document_name": "nasa.pdf",
+      "document_id": "1977db67-7f70-445b-b424-a4c1dbd237b7",
+      "query": "What is the definition of Technical Authority (TA) in the NASA governance framework?",
+      "ground_truth_answer": "Technical Authority is part of NASA's system of checks and balances where individuals with technical expertise maintain independent oversight over safety and engineering integrity, independent of programmatic management.",
+      "expected_keywords": [
+        "Technical Authority",
+        "governance",
+        "independent",
+        "checks and balances"
+      ],
+      "is_unanswerable": false
+    },
+    {
+      "id": "TC_MIX_SEM",
+      "document_category": "Mixed",
+      "question_type": "Semantic",
+      "document_name": "nasa.pdf",
+      "document_id": "1977db67-7f70-445b-b424-a4c1dbd237b7",
+      "query": "How do trade studies help engineering teams balance conflicting requirements such as cost, weight, and safety?",
+      "ground_truth_answer": "Trade studies provide a formal, quantitative decision-making method to evaluate alternative design configurations against weighted criteria, selecting optimal architectures while managing risk.",
+      "expected_keywords": [
+        "trade studies",
+        "decision",
+        "alternatives",
+        "criteria"
+      ],
+      "is_unanswerable": false
+    },
+    {
+      "id": "TC_MIX_NUM",
+      "document_category": "Mixed",
+      "question_type": "Numerical",
+      "document_name": "nasa.pdf",
+      "document_id": "1977db67-7f70-445b-b424-a4c1dbd237b7",
+      "query": "How many formal lifecycle phases (from Pre-Phase A to Phase F) make up a NASA space flight project?",
+      "ground_truth_answer": "There are 7 formal lifecycle phases: Pre-Phase A (Concept Studies), Phase A, Phase B, Phase C, Phase D, Phase E (Operations and Sustainment), and Phase F (Closeout).",
+      "expected_keywords": [
+        "7",
+        "Pre-Phase A",
+        "Phase F",
+        "phases"
+      ],
+      "is_unanswerable": false
+    },
+    {
+      "id": "TC_MIX_COMP",
+      "document_category": "Mixed",
+      "question_type": "Comparative",
+      "document_name": "nasa.pdf",
+      "document_id": "1977db67-7f70-445b-b424-a4c1dbd237b7",
+      "query": "How does the Critical Design Review (CDR) in Phase C differ in purpose from the Preliminary Design Review (PDR) in Phase B?",
+      "ground_truth_answer": "PDR demonstrates that the preliminary design meets all system requirements with acceptable risk before detailed design begins. CDR demonstrates that the mature design fulfills requirements and is ready for fabrication, coding, and assembly.",
+      "expected_keywords": [
+        "PDR",
+        "CDR",
+        "preliminary",
+        "fabrication"
+      ],
+      "is_unanswerable": false
+    },
+    {
+      "id": "TC_MIX_MHOP",
+      "document_category": "Mixed",
+      "question_type": "Multi-hop",
+      "document_name": "nasa.pdf",
+      "document_id": "1977db67-7f70-445b-b424-a4c1dbd237b7",
+      "query": "How do Key Decision Points (KDPs) serve as governance gates across project formulation and implementation phases?",
+      "ground_truth_answer": "Key Decision Points (KDPs) are events where the Decision Authority reviews project progress, technical readiness, cost, and schedule to approve or deny authorization to advance to the next lifecycle phase.",
+      "expected_keywords": [
+        "Decision Authority",
+        "KDP",
+        "phase",
+        "authorization"
+      ],
+      "is_unanswerable": false
+    },
+    {
+      "id": "TC_MIX_TBL",
+      "document_category": "Mixed",
+      "question_type": "Table-based",
+      "document_name": "nasa.pdf",
+      "document_id": "1977db67-7f70-445b-b424-a4c1dbd237b7",
+      "query": "According to Table 2.3-1 or the project lifecycle tables, what major deliverable products are produced during Phase B?",
+      "ground_truth_answer": "Phase B deliverables include the Preliminary Design baseline, allocated baseline, System Requirements verification plan, and initial cost/schedule baseline commitments.",
+      "expected_keywords": [
+        "Phase B",
+        "baseline",
+        "preliminary design"
+      ],
+      "is_unanswerable": false
+    },
+    {
+      "id": "TC_MIX_UNANS",
+      "document_category": "Mixed",
+      "question_type": "Unanswerable",
+      "document_name": "nasa.pdf",
+      "document_id": "1977db67-7f70-445b-b424-a4c1dbd237b7",
+      "query": "What are the warp drive gravitational field metrics and dilithium crystal alignment protocols in the NASA handbook?",
+      "ground_truth_answer": "I cannot find sufficient information in the indexed documents to answer this question.",
+      "expected_keywords": [
+        "cannot find sufficient information"
+      ],
+      "is_unanswerable": true
+    }
+  ]
+}

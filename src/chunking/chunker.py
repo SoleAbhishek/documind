@@ -6,6 +6,51 @@ from langchain_text_splitters import MarkdownHeaderTextSplitter, RecursiveCharac
 from src.parsing.parser import ParsedDocument, ParsedPage
 
 
+def is_table_separator_line(line: str) -> bool:
+    """Checks if a line is a markdown table separator (e.g., '| --- | :---: | ---: |')."""
+    s = line.strip()
+    return bool(re.match(r"^\|(?:\s*:?-+:?\s*\|)+\s*$", s))
+
+
+def split_markdown_table(table_lines: List[str], max_chunk_size: int = 1500) -> List[str]:
+    """
+    Splits an oversized Markdown table while guaranteeing that EVERY chunk
+    inherits the column headers and alignment separator row.
+    """
+    if len(table_lines) < 3 or not is_table_separator_line(table_lines[1]):
+        return ["\n".join(table_lines)]
+
+    header_line = table_lines[0].strip()
+    separator_line = table_lines[1].strip()
+    data_rows = table_lines[2:]
+
+    header_block = f"{header_line}\n{separator_line}\n"
+    header_len = len(header_block)
+
+    chunks: List[str] = []
+    current_rows: List[str] = []
+    current_len = header_len
+
+    for row in data_rows:
+        row_str = row.strip()
+        if not row_str:
+            continue
+        row_len = len(row_str) + 1  # newline
+
+        if current_rows and (current_len + row_len > max_chunk_size):
+            chunks.append(header_block + "\n".join(current_rows))
+            current_rows = [row_str]
+            current_len = header_len + row_len
+        else:
+            current_rows.append(row_str)
+            current_len += row_len
+
+    if current_rows:
+        chunks.append(header_block + "\n".join(current_rows))
+
+    return chunks
+
+
 @dataclass
 class Chunk:
     """Represents a finalized, context-enriched chunk ready for embedding and indexing."""
@@ -83,6 +128,74 @@ class MarkdownChunker:
 
         return all_chunks
 
+    def split_section_blocks(self, section_text: str) -> List[str]:
+        """
+        Intelligently splits a markdown section into chunks while protecting table structure.
+        Ensures that split tables always inherit column headers and separator rows in every sub-chunk.
+        """
+        if len(section_text) <= self.chunk_size:
+            return [section_text]
+
+        lines = section_text.split("\n")
+        blocks: List[tuple[str, List[str]]] = []
+
+        current_type = None
+        current_block_lines: List[str] = []
+
+        i = 0
+        while i < len(lines):
+            line = lines[i]
+            is_pipe_row = "|" in line and line.strip().startswith("|") and line.strip().endswith("|")
+
+            if current_type == "table":
+                if is_pipe_row:
+                    current_block_lines.append(line)
+                    i += 1
+                    continue
+                else:
+                    # End of table
+                    blocks.append(("table", current_block_lines))
+                    current_type = None
+                    current_block_lines = []
+
+            # Check if starting a new markdown table (needs header + separator)
+            if is_pipe_row and i + 1 < len(lines) and is_table_separator_line(lines[i + 1]):
+                if current_block_lines:
+                    blocks.append(("prose", current_block_lines))
+                    current_block_lines = []
+                current_type = "table"
+                current_block_lines = [line, lines[i + 1]]
+                i += 2
+                continue
+
+            # Regular prose line
+            current_block_lines.append(line)
+            i += 1
+
+        if current_block_lines:
+            blocks.append((current_type or "prose", current_block_lines))
+
+        # Process each block into chunks
+        final_sub_chunks: List[str] = []
+        for b_type, b_lines in blocks:
+            block_text = "\n".join(b_lines).strip()
+            if not block_text:
+                continue
+
+            if b_type == "table":
+                if len(block_text) <= self.chunk_size:
+                    final_sub_chunks.append(block_text)
+                else:
+                    table_splits = split_markdown_table(b_lines, max_chunk_size=self.chunk_size)
+                    final_sub_chunks.extend(table_splits)
+            else:
+                if len(block_text) <= self.chunk_size:
+                    final_sub_chunks.append(block_text)
+                else:
+                    final_sub_chunks.extend(self.recursive_splitter.split_text(block_text))
+
+        return final_sub_chunks
+
     def chunk_page(self, page_text: str, page_number: int, start_index: int = 0) -> List[Chunk]:
         """
         Splits a single page's Markdown into context-enriched chunks.
@@ -103,12 +216,12 @@ class MarkdownChunker:
 
             section_text = split.page_content.strip()
 
-            # Step 2: Check if section fits within target size
+            # Step 2: Check if section fits within target size with table-preserving logic
             if len(section_text) <= self.chunk_size:
                 sub_chunks = [section_text]
             else:
-                # Secondary split for oversized sections
-                sub_chunks = self.recursive_splitter.split_text(section_text)
+                # Secondary split with table-header inheritance
+                sub_chunks = self.split_section_blocks(section_text)
 
             # Step 3: Package into Chunk objects with header context injection
             for sub_text in sub_chunks:
@@ -122,6 +235,8 @@ class MarkdownChunker:
                 else:
                     enriched_text = clean_text
 
+                has_table = bool(re.search(r"^\|(?:\s*:?-+:?\s*\|)+\s*$", clean_text, re.MULTILINE))
+
                 chunk_obj = Chunk(
                     chunk_index=current_idx,
                     text=enriched_text,
@@ -132,7 +247,7 @@ class MarkdownChunker:
                     metadata={
                         "page_number": page_number,
                         "header_path": header_path,
-                        "has_table": bool(re.search(r"\|.*\|.*\|", clean_text))
+                        "has_table": has_table
                     }
                 )
                 chunks.append(chunk_obj)
