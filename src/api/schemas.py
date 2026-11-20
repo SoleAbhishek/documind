@@ -66,6 +66,8 @@ class ChatResponse(BaseModel):
     query: str
     answer: str
     citations: List[CitationItem]
+    cached: Optional[bool] = False
+    cost_summary: Optional[Dict[str, Any]] = None
 
 
 class ChatSessionResponse(BaseModel):

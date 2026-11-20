@@ -41,18 +41,23 @@ class S3StorageProvider(BaseStorageProvider):
             aws_secret_access_key=settings.S3_SECRET_KEY,
             region_name=settings.S3_REGION,
         )
-        self._ensure_bucket()
+        self._bucket_ensured = False
 
     def _ensure_bucket(self):
+        if self._bucket_ensured:
+            return
         try:
             self.client.head_bucket(Bucket=self.bucket)
-        except ClientError:
+            self._bucket_ensured = True
+        except Exception:
             try:
                 self.client.create_bucket(Bucket=self.bucket)
+                self._bucket_ensured = True
             except Exception as e:
-                print(f"[Storage] Warning: Could not create bucket {self.bucket}: {e}")
+                print(f"[Storage] Notice: S3 bucket '{self.bucket}' deferred init or unreachable ({e}).")
 
     def upload(self, key: str, data: bytes, content_type: str = "application/octet-stream") -> str:
+        self._ensure_bucket()
         self.client.put_object(
             Bucket=self.bucket,
             Key=key,

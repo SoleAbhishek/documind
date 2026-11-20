@@ -231,7 +231,9 @@ export default function App() {
           id: doneEvent.message_id || `asst-${Date.now()}`,
           role: 'assistant',
           content: accumulatedTokens,
-          retrieved_chunks: doneEvent.citations || currentCitations
+          retrieved_chunks: doneEvent.citations || currentCitations,
+          cached: doneEvent.cached || false,
+          similarity: doneEvent.similarity || null
         };
         setMessages((prev) => [...prev, assistantMessage]);
         setIsGenerating(false);

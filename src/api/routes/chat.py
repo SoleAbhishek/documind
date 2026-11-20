@@ -67,7 +67,9 @@ async def chat_sync_endpoint(payload: ChatRequest):
             session_id=result["session_id"],
             query=result["query"],
             answer=result["answer"],
-            citations=result["citations"]
+            citations=result["citations"],
+            cached=result.get("cached", False),
+            cost_summary=result.get("cost_summary")
         )
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))

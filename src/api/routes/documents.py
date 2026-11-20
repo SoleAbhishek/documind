@@ -9,6 +9,7 @@ from src.db.models import Document, Tenant, DocumentStatus
 from src.storage.service import storage_service
 from src.services.ingestion import ingestion_service
 from src.search.vector_store import vector_store
+from src.services.semantic_cache import semantic_cache
 from src.api.schemas import DocumentResponse, DocumentUploadResponse
 
 router = APIRouter(prefix="/documents", tags=["Documents"])
@@ -152,5 +153,11 @@ async def delete_document(
     # 3. Delete from PostgreSQL (cascades to chunks)
     await db.delete(doc)
     await db.commit()
+
+    # 4. Invalidate Semantic Cache entries associated with this document
+    try:
+        semantic_cache.invalidate(tenant_id=tenant_id, document_id=document_id)
+    except Exception as e:
+        print(f"[Warning] Failed to invalidate semantic cache for document '{document_id}': {e}")
 
     return {"status": "success", "message": f"Document '{document_id}' deleted successfully."}

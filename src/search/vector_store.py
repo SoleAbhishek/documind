@@ -6,6 +6,14 @@ from qdrant_client import QdrantClient, models
 from src.config import settings
 from src.chunking.chunker import Chunk
 
+try:
+    from langsmith import traceable
+except ImportError:
+    def traceable(*args, **kwargs):
+        def decorator(func):
+            return func
+        return decorator
+
 os.environ["HF_HUB_DISABLE_SYMLINKS_WARNING"] = "1"
 
 
@@ -233,6 +241,7 @@ class QdrantVectorStore:
         print(f"[VectorStore] Upserted {len(points)} chunks to Qdrant for document {document_id}.")
         return point_ids
 
+    @traceable(run_type="retriever", name="Qdrant Hybrid Search (Dense + BM25 RRF)")
     def search_hybrid(
         self,
         tenant_id: str,

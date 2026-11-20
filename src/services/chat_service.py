@@ -9,6 +9,16 @@ from src.config import settings
 from src.db.session import AsyncSessionLocal
 from src.db.models import ChatSession, ChatMessage, Tenant
 from src.search.vector_store import vector_store
+from src.services.semantic_cache import semantic_cache
+from src.services.cost_tracker import cost_tracker
+
+try:
+    from langsmith import traceable
+except ImportError:
+    def traceable(*args, **kwargs):
+        def decorator(func):
+            return func
+        return decorator
 
 os.environ["HF_HUB_DISABLE_SYMLINKS_WARNING"] = "1"
 
@@ -19,11 +29,13 @@ class ChatService:
     Retrieves candidate chunks via Qdrant RRF (Dense + BM25),
     applies Cross-Encoder reranking, constructs grounded citations,
     and streams responses using Google Gemini.
+    Instrumented with LangSmith @traceable for end-to-end tracing and cost analysis.
     """
 
     def __init__(self):
         self._reranker = None
         self._llm = None
+        self._last_stream_usage = None
 
     @property
     def reranker(self):
@@ -46,6 +58,7 @@ class ChatService:
                 print(f"[ChatService] Warning: Could not initialize Google GenAI Client ({e}).")
         return None
 
+    @traceable(run_type="tool", name="Cross-Encoder Reranker")
     def rerank_chunks(self, query: str, candidates: List[Dict[str, Any]], top_k: int = 4) -> List[Dict[str, Any]]:
         """
         Scores candidate chunks against the query using Cross-Encoder attention.
@@ -63,6 +76,36 @@ class ChatService:
         # Sort descending by cross-encoder score
         reranked = sorted(candidates, key=lambda x: x["rerank_score"], reverse=True)
         return reranked[:top_k]
+
+    @traceable(run_type="llm", name="Gemini LLM Generation")
+    def _generate_gemini_stream(self, system_prompt: str, query: str):
+        """
+        Streams content tokens directly from Google GenAI model and extracts token metrics.
+        """
+        genai_client = self._get_genai_client()
+        if not genai_client:
+            return
+        model_name = settings.GEMINI_CHAT_MODEL.replace("models/", "")
+        combined_prompt = f"{system_prompt}\n\nUser Question:\n{query}"
+        stream = genai_client.models.generate_content_stream(
+            model=model_name,
+            contents=combined_prompt
+        )
+        last_chunk = None
+        for chunk in stream:
+            last_chunk = chunk
+            if chunk.text:
+                yield chunk.text
+
+        # Extract token usage metadata from the final stream chunk
+        if last_chunk and hasattr(last_chunk, "usage_metadata") and last_chunk.usage_metadata:
+            self._last_stream_usage = {
+                "prompt_tokens": getattr(last_chunk.usage_metadata, "prompt_token_count", 0),
+                "completion_tokens": getattr(last_chunk.usage_metadata, "candidates_token_count", 0),
+                "total_tokens": getattr(last_chunk.usage_metadata, "total_token_count", 0),
+            }
+        else:
+            self._last_stream_usage = None
 
     def _build_system_prompt(self, context_chunks: List[Dict[str, Any]]) -> str:
         """
@@ -144,6 +187,70 @@ Context Sources:
             await db_session.commit()
 
         yield {"type": "session", "session_id": session_id}
+
+        # Step 1.5: Semantic Cache Lookup
+        yield {"type": "status", "stage": "cache_lookup", "message": "Checking Semantic Cache..."}
+        cached_result = semantic_cache.lookup(
+            tenant_id=tenant_id,
+            query=query,
+            document_id=document_id
+        )
+
+        if cached_result:
+            cached_answer = cached_result["answer"]
+            cached_citations = cached_result.get("citations", [])
+            sim = cached_result.get("similarity", 1.0)
+
+            yield {
+                "type": "status",
+                "stage": "cache_hit",
+                "message": f"⚡ Semantic Cache Hit (similarity: {sim:.3f}). Zero LLM latency."
+            }
+            yield {
+                "type": "citations",
+                "citations": cached_citations,
+                "cached": True
+            }
+
+            # Stream cached tokens rapidly to the frontend
+            words = cached_answer.split(" ")
+            for i, word in enumerate(words):
+                yield {"type": "token", "content": word + (" " if i < len(words) - 1 else "")}
+                await asyncio.sleep(0.005)
+
+            # Calculate cost and savings for cached response (Zero live LLM cost)
+            p_tokens = cost_tracker.estimate_tokens(query)
+            c_tokens = cost_tracker.estimate_tokens(cached_answer)
+            cost_summary = cost_tracker.compare_all_models(
+                prompt_tokens=p_tokens,
+                completion_tokens=c_tokens,
+                current_model=settings.GEMINI_CHAT_MODEL,
+                is_cache_hit=True
+            )
+
+            # Record Assistant Message with Audit Trail in Postgres
+            async with AsyncSessionLocal() as db_session:
+                asst_msg = ChatMessage(
+                    id=str(uuid.uuid4()),
+                    session_id=session_id,
+                    role="assistant",
+                    content=cached_answer,
+                    retrieved_chunks=cached_citations
+                )
+                db_session.add(asst_msg)
+                await db_session.commit()
+
+            yield {
+                "type": "done",
+                "session_id": session_id,
+                "message_id": asst_msg.id,
+                "citations": cached_citations,
+                "cached": True,
+                "similarity": sim,
+                "cost_summary": cost_summary
+            }
+            return
+
         yield {"type": "status", "stage": "retrieval", "message": "Executing Hybrid Search (Dense + BM25 RRF)..."}
 
         # Step 2: Hybrid Retrieval in Qdrant
@@ -198,20 +305,13 @@ Context Sources:
         full_response_text = ""
 
         # Step 5: Streaming Generation via Google Gemini
+        self._last_stream_usage = None
         if genai_client:
             try:
-                model_name = settings.GEMINI_CHAT_MODEL.replace("models/", "")
-                combined_prompt = f"{system_prompt}\n\nUser Question:\n{query}"
-                response_stream = genai_client.models.generate_content_stream(
-                    model=model_name,
-                    contents=combined_prompt
-                )
-                for chunk in response_stream:
-                    token = chunk.text
-                    if token:
-                        full_response_text += token
-                        yield {"type": "token", "content": token}
-                        await asyncio.sleep(0.01)
+                for token in self._generate_gemini_stream(system_prompt, query):
+                    full_response_text += token
+                    yield {"type": "token", "content": token}
+                    await asyncio.sleep(0.01)
             except Exception as e:
                 print(f"[ChatService] Gemini streaming error: {e}. Falling back to local synthesizer.")
                 genai_client = None
@@ -227,6 +327,22 @@ Context Sources:
                 yield {"type": "token", "content": token}
                 await asyncio.sleep(0.05)
 
+        # Calculate exact or estimated token counts and cross-model cost comparison
+        if self._last_stream_usage and self._last_stream_usage.get("total_tokens", 0) > 0:
+            p_tokens = self._last_stream_usage["prompt_tokens"]
+            c_tokens = self._last_stream_usage["completion_tokens"]
+        else:
+            combined_prompt = f"{system_prompt}\n\nUser Question:\n{query}"
+            p_tokens = cost_tracker.estimate_tokens(combined_prompt)
+            c_tokens = cost_tracker.estimate_tokens(full_response_text)
+
+        cost_summary = cost_tracker.compare_all_models(
+            prompt_tokens=p_tokens,
+            completion_tokens=c_tokens,
+            current_model=settings.GEMINI_CHAT_MODEL,
+            is_cache_hit=False
+        )
+
         # Step 6: Record Assistant Message with Audit Trail in Postgres
         async with AsyncSessionLocal() as db_session:
             asst_msg = ChatMessage(
@@ -239,13 +355,34 @@ Context Sources:
             db_session.add(asst_msg)
             await db_session.commit()
 
+        # Step 7: Populate Semantic Cache for future identical or paraphrased queries
+        if (
+            full_response_text
+            and not full_response_text.startswith("Error")
+            and not full_response_text.startswith("I could not find")
+            and not full_response_text.startswith("I cannot find")
+        ):
+            try:
+                semantic_cache.store(
+                    tenant_id=tenant_id,
+                    query=query,
+                    answer=full_response_text,
+                    citations=citations,
+                    document_id=document_id
+                )
+            except Exception as e:
+                print(f"[ChatService] Warning: Failed to populate semantic cache: {e}")
+
         yield {
             "type": "done",
             "session_id": session_id,
             "message_id": asst_msg.id,
-            "citations": citations
+            "citations": citations,
+            "cached": False,
+            "cost_summary": cost_summary
         }
 
+    @traceable(run_type="chain", name="DocuMind RAG Pipeline")
     async def chat(
         self,
         tenant_id: str,
@@ -255,10 +392,13 @@ Context Sources:
     ) -> Dict[str, Any]:
         """
         Non-streaming helper convenience method.
+        Fully instrumented for LangSmith tracing with cost analysis.
         """
         full_text = ""
         citations = []
         final_session_id = session_id
+        is_cached = False
+        cost_summary = {}
 
         async for event in self.stream_chat(
             tenant_id=tenant_id,
@@ -272,12 +412,17 @@ Context Sources:
                 citations = event["citations"]
             elif event["type"] == "session":
                 final_session_id = event["session_id"]
+            elif event["type"] == "done":
+                is_cached = event.get("cached", False)
+                cost_summary = event.get("cost_summary", {})
 
         return {
             "session_id": final_session_id,
             "query": query,
             "answer": full_text,
-            "citations": citations
+            "citations": citations,
+            "cached": is_cached,
+            "cost_summary": cost_summary
         }
 
 

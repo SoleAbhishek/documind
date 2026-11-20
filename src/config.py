@@ -45,6 +45,24 @@ class Settings(BaseSettings):
     # Reranker Model
     RERANKER_MODEL: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 
+    # LangChain / LangSmith Tracing & Observability
+    LANGCHAIN_TRACING_V2: bool = False
+    LANGCHAIN_API_KEY: Optional[str] = None
+    LANGCHAIN_PROJECT: str = "documind-rag"
+    LANGCHAIN_ENDPOINT: str = "https://api.smith.langchain.com"
+
 
 # Global singleton instance
 settings = Settings()
+
+# Synchronize LangSmith environment variables if tracing is configured
+import os
+if settings.LANGCHAIN_TRACING_V2:
+    os.environ["LANGCHAIN_TRACING_V2"] = "true"
+if settings.LANGCHAIN_API_KEY:
+    os.environ["LANGCHAIN_API_KEY"] = settings.LANGCHAIN_API_KEY
+if settings.LANGCHAIN_PROJECT:
+    os.environ["LANGCHAIN_PROJECT"] = settings.LANGCHAIN_PROJECT
+if settings.LANGCHAIN_ENDPOINT:
+    os.environ["LANGCHAIN_ENDPOINT"] = settings.LANGCHAIN_ENDPOINT
+

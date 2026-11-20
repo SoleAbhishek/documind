@@ -199,6 +199,13 @@ export default function ChatArea({
                       : 'bg-slate-900/90 border border-slate-800/90 text-slate-200 rounded-tl-none'
                   }`}
                 >
+                  {m.role !== 'user' && m.cached && (
+                    <div className="inline-flex items-center space-x-1.5 text-[10px] font-mono font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full mb-2">
+                      <span>⚡ Semantic Cache Hit</span>
+                      {m.similarity && <span>({(m.similarity * 100).toFixed(1)}% match)</span>}
+                    </div>
+                  )}
+
                   {m.role === 'user' ? (
                     <p className="text-sm leading-relaxed whitespace-pre-wrap">{m.content}</p>
                   ) : (
