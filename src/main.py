@@ -6,7 +6,7 @@ from src.config import settings
 from src.db.session import init_db
 from src.storage.service import storage_service
 from src.search.vector_store import vector_store
-from src.api.routes import tenants_router, documents_router, chat_router
+from src.api.routes import tenants_router, documents_router, chat_router, memory_router
 
 
 @asynccontextmanager
@@ -66,6 +66,7 @@ app.add_middleware(
 app.include_router(tenants_router, prefix="/api/v1")
 app.include_router(documents_router, prefix="/api/v1")
 app.include_router(chat_router, prefix="/api/v1")
+app.include_router(memory_router, prefix="/api/v1")
 
 
 @app.get("/health", tags=["Health"])

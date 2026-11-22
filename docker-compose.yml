@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: documind_secret
       POSTGRES_DB: documind_db
     ports:
-      - "5433:5432"
+      - "5434:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -22,8 +22,8 @@ services:
     container_name: documind-qdrant
     restart: unless-stopped
     ports:
-      - "6333:6333"   # REST API & Web Dashboard UI (http://localhost:6333/dashboard)
-      - "6334:6334"   # gRPC API
+      - "6335:6333"   # REST API & Web Dashboard UI (http://localhost:6335/dashboard)
+      - "6336:6334"   # gRPC API
     volumes:
       - qdrant_data:/qdrant/storage
     environment:
@@ -34,8 +34,8 @@ services:
     container_name: documind-minio
     restart: unless-stopped
     ports:
-      - "9000:9000"   # S3 API
-      - "9001:9001"   # Web Console UI (http://localhost:9001)
+      - "9003:9000"   # S3 API
+      - "9004:9001"   # Web Console UI (http://localhost:9004)
     environment:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadmin_secret

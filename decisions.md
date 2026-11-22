@@ -140,3 +140,16 @@ flowchart TD
         StreamSSE --> AuditSave["Save Audit Trail to PostgreSQL"]
     end
 ```
+
+---
+
+## 12. Conversational Memory: Custom STM + PostgreSQL LTM
+- **Context**: Follow-up queries with pronouns (*"What if they miss it?"*) fail during Qdrant Hybrid Search and Semantic Cache lookup because retrieval steps only see the raw query string, not chat history. Meanwhile, tenant-level preferences and glossaries need persistence across sessions.
+- **Decision**: Build a custom [`MemoryService`](src/services/memory_service.py) directly on PostgreSQL + `google-genai`:
+  1. **Short-Term Memory (STM)**:
+     - **Running Summary + Recent Window**: Store `summary` and `summarized_count` on [`ChatSession`](src/db/models.py) and keep the last 6 messages (3 turns) verbatim. Older turns are folded incrementally in the background (`0 ms` added to response latency).
+     - **STM Query Rewriting**: Before `SemanticCacheService.lookup()` and `QdrantVectorStore.search_hybrid()`, rewrite follow-up queries into standalone search queries (fast-path skipped on Turn 1 when no history/glossary exists). This prevents both retrieval misses and pronoun cache collisions.
+  2. **Long-Term Memory (LTM)**:
+     - **Deterministic PostgreSQL Store**: [`TenantMemory`](src/db/models.py) (`tenant_memories`) stores `glossary`, `preference`, and `fact` records keyed by `(tenant_id, memory_type, key)` with full CRUD endpoints (`/api/v1/memory`).
+     - **Background Extractor & Cache Invalidation**: A lightweight post-turn background LLM check outputs `UPSERT` / `DELETE` / `[]` actions to reconcile new preferences/acronyms without duplicates, and invalidates that tenant's semantic cache whenever LTM changes.
+- **Consequences**: Zero new external dependencies, strict SQL multi-tenant isolation, deterministic glossary/preference injection, and full visibility into every memory step.

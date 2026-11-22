@@ -1,4 +1,5 @@
 from typing import AsyncGenerator
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from src.config import settings
 from sqlmodel import SQLModel
@@ -35,7 +36,9 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 
 
 async def init_db():
-    """Create database tables if they do not exist."""
+    """Create database tables if they do not exist and apply lightweight column upgrades."""
     async with async_engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.create_all)
+        await conn.execute(text("ALTER TABLE chat_sessions ADD COLUMN IF NOT EXISTS summary TEXT"))
+        await conn.execute(text("ALTER TABLE chat_sessions ADD COLUMN IF NOT EXISTS summarized_count INTEGER NOT NULL DEFAULT 0"))
     print("[Database] PostgreSQL tables initialized successfully.")

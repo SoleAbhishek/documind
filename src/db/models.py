@@ -30,6 +30,7 @@ class Tenant(SQLModel, table=True):
     # Relationships
     documents: List["Document"] = Relationship(back_populates="tenant", cascade_delete=True)
     chat_sessions: List["ChatSession"] = Relationship(back_populates="tenant", cascade_delete=True)
+    memories: List["TenantMemory"] = Relationship(back_populates="tenant", cascade_delete=True)
 
 
 # ==========================================
@@ -89,6 +90,8 @@ class ChatSession(SQLModel, table=True):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True, max_length=64)
     tenant_id: str = Field(foreign_key="tenants.id", index=True, ondelete="CASCADE", max_length=64)
     title: str = Field(default="New Chat", max_length=255)
+    summary: Optional[str] = Field(default=None, sa_column=Column(Text, nullable=True))
+    summarized_count: int = Field(default=0)
     created_at: datetime = Field(default_factory=utc_now)
 
     # Relationships
@@ -113,3 +116,21 @@ class ChatMessage(SQLModel, table=True):
 
     # Relationships
     session: Optional[ChatSession] = Relationship(back_populates="messages")
+
+
+# ==========================================
+# 6. TENANT LONG-TERM MEMORY ENTITY
+# ==========================================
+class TenantMemory(SQLModel, table=True):
+    __tablename__ = "tenant_memories"
+
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True, max_length=64)
+    tenant_id: str = Field(foreign_key="tenants.id", index=True, ondelete="CASCADE", max_length=64)
+    memory_type: str = Field(default="fact", index=True, max_length=32)  # "glossary" | "preference" | "fact"
+    key: str = Field(index=True, max_length=255)
+    value: str = Field(sa_column=Column(Text, nullable=False))
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
+
+    # Relationships
+    tenant: Optional[Tenant] = Relationship(back_populates="memories")

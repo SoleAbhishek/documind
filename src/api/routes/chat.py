@@ -66,6 +66,7 @@ async def chat_sync_endpoint(payload: ChatRequest):
         return ChatResponse(
             session_id=result["session_id"],
             query=result["query"],
+            rewritten_query=result.get("rewritten_query"),
             answer=result["answer"],
             citations=result["citations"],
             cached=result.get("cached", False),

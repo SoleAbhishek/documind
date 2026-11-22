@@ -7,10 +7,11 @@ from sqlmodel import select
 
 from src.config import settings
 from src.db.session import AsyncSessionLocal
-from src.db.models import ChatSession, ChatMessage, Tenant
+from src.db.models import ChatSession, ChatMessage, Tenant, TenantMemory
 from src.search.vector_store import vector_store
 from src.services.semantic_cache import semantic_cache
 from src.services.cost_tracker import cost_tracker
+from src.services.memory_service import memory_service
 
 try:
     from langsmith import traceable
@@ -107,9 +108,15 @@ class ChatService:
         else:
             self._last_stream_usage = None
 
-    def _build_system_prompt(self, context_chunks: List[Dict[str, Any]]) -> str:
+    def _build_system_prompt(
+        self,
+        context_chunks: List[Dict[str, Any]],
+        stm_context: Optional[Dict[str, Any]] = None,
+        ltm_memories: Optional[List[TenantMemory]] = None,
+    ) -> str:
         """
-        Constructs context-grounded prompt requiring explicit source citations.
+        Constructs context-grounded prompt requiring explicit source citations,
+        while injecting tenant LTM preferences/glossary and STM conversation continuity.
         """
         context_str = ""
         for i, c in enumerate(context_chunks, 1):
@@ -119,19 +126,58 @@ class ChatService:
             text = c.get("text", "")
             context_str += f"\n--- [Source {i}] (Document: {doc_id}, Page: {page}, Section: {section}) ---\n{text}\n"
 
+        ltm_block = ""
+        if ltm_memories:
+            formatted_ltm = memory_service.format_ltm_for_prompt(ltm_memories)
+            if formatted_ltm:
+                ltm_block = f"\nTenant Long-Term Memory (Preferences, Glossary & Org Context):\n{formatted_ltm}\n"
+
+        stm_block = ""
+        if stm_context:
+            formatted_stm = memory_service.format_stm_for_prompt(
+                stm_context.get("summary"),
+                stm_context.get("recent_messages", []),
+            )
+            if formatted_stm:
+                stm_block = f"\nConversation History (For Continuity Only — Do NOT cite as document evidence):\n{formatted_stm}\n"
+
         prompt = f"""You are DocuMind, an enterprise AI assistant specializing in document intelligence.
-Answer the user's question accurately and concisely based strictly on the provided context below.
+Answer the user's question accurately and concisely based strictly on the provided Context Sources below.
 
 Rules:
-1. ONLY use information explicitly stated in the context sources. Do not extrapolate or hallucinate facts.
-2. If the answer cannot be found in the provided sources, state clearly: "I cannot find sufficient information in the indexed documents to answer this question."
+1. ONLY use factual information explicitly stated in the Context Sources. Do not extrapolate or hallucinate facts.
+2. If the answer cannot be found in the provided Context Sources, state clearly: "I cannot find sufficient information in the indexed documents to answer this question."
 3. Whenever making a factual claim, cite the corresponding source index using bracket notation like [Source 1] or [Source 2].
 4. If a source contains tabular data, synthesize it clearly and reference the table section.
-
+5. Respect any formatting/style preferences or glossary definitions in Tenant Long-Term Memory when present.
+{ltm_block}{stm_block}
 Context Sources:
 {context_str}
 """
         return prompt
+
+    def _schedule_memory_maintenance(
+        self,
+        session_id: str,
+        tenant_id: str,
+        user_query: str,
+        assistant_answer: str,
+    ) -> None:
+        """Runs STM summarization and LTM extraction in the background with zero added latency."""
+        async def _run():
+            try:
+                await memory_service.maybe_update_session_summary(session_id, tenant_id)
+            except Exception as e:
+                print(f"[ChatService] Warning: Background STM summary update failed: {e}")
+            try:
+                await memory_service.extract_and_persist_ltm(tenant_id, user_query, assistant_answer)
+            except Exception as e:
+                print(f"[ChatService] Warning: Background LTM extraction failed: {e}")
+
+        try:
+            asyncio.create_task(_run())
+        except RuntimeError:
+            pass
 
     async def stream_chat(
         self,
@@ -176,7 +222,12 @@ Context Sources:
                 await db_session.refresh(chat_session)
                 session_id = chat_session.id
 
-            # Save User Message
+        # Load STM (summary + last 6 messages) & LTM (tenant glossary/preferences) before saving current turn
+        stm_context = await memory_service.get_stm_context(session_id=session_id, tenant_id=tenant_id, recent_limit=6)
+        ltm_memories = await memory_service.get_tenant_memories(tenant_id=tenant_id)
+
+        # Save User Message
+        async with AsyncSessionLocal() as db_session:
             user_msg = ChatMessage(
                 id=str(uuid.uuid4()),
                 session_id=session_id,
@@ -188,11 +239,28 @@ Context Sources:
 
         yield {"type": "session", "session_id": session_id}
 
-        # Step 1.5: Semantic Cache Lookup
+        # Step 1.2: STM Query Rewriting (contextualizes pronouns/acronyms before Cache & Qdrant)
+        standalone_query = await asyncio.to_thread(
+            memory_service.rewrite_query,
+            query,
+            stm_context.get("summary"),
+            stm_context.get("recent_messages"),
+            ltm_memories,
+        )
+        was_rewritten = standalone_query.strip().lower() != query.strip().lower()
+        rewritten_query_out = standalone_query if was_rewritten else None
+        if was_rewritten:
+            yield {
+                "type": "status",
+                "stage": "memory_rewrite",
+                "message": f"Contextualized query: '{standalone_query}'",
+            }
+
+        # Step 1.5: Semantic Cache Lookup (uses standalone_query to avoid pronoun collisions)
         yield {"type": "status", "stage": "cache_lookup", "message": "Checking Semantic Cache..."}
         cached_result = semantic_cache.lookup(
             tenant_id=tenant_id,
-            query=query,
+            query=standalone_query,
             document_id=document_id
         )
 
@@ -240,10 +308,13 @@ Context Sources:
                 db_session.add(asst_msg)
                 await db_session.commit()
 
+            self._schedule_memory_maintenance(session_id, tenant_id, query, cached_answer)
+
             yield {
                 "type": "done",
                 "session_id": session_id,
                 "message_id": asst_msg.id,
+                "rewritten_query": rewritten_query_out,
                 "citations": cached_citations,
                 "cached": True,
                 "similarity": sim,
@@ -256,7 +327,7 @@ Context Sources:
         # Step 2: Hybrid Retrieval in Qdrant
         raw_candidates = vector_store.search_hybrid(
             tenant_id=tenant_id,
-            query=query,
+            query=standalone_query,
             limit=retrieval_limit,
             document_id=document_id
         )
@@ -280,7 +351,7 @@ Context Sources:
         yield {"type": "status", "stage": "reranking", "message": f"Reranking {len(raw_candidates)} candidates via Cross-Encoder..."}
 
         # Step 3: Cross-Encoder Reranking
-        top_chunks = self.rerank_chunks(query, raw_candidates, top_k=rerank_top_k)
+        top_chunks = self.rerank_chunks(standalone_query, raw_candidates, top_k=rerank_top_k)
 
         # Build Citations Metadata for Auditability & UI
         citations = []
@@ -298,8 +369,12 @@ Context Sources:
 
         yield {"type": "citations", "citations": citations}
 
-        # Step 4: System Prompt & Context Assembly
-        system_prompt = self._build_system_prompt(top_chunks)
+        # Step 4: System Prompt & Context Assembly (with STM history + LTM tenant memory)
+        system_prompt = self._build_system_prompt(
+            top_chunks,
+            stm_context=stm_context,
+            ltm_memories=ltm_memories,
+        )
         genai_client = self._get_genai_client()
 
         full_response_text = ""
@@ -355,7 +430,7 @@ Context Sources:
             db_session.add(asst_msg)
             await db_session.commit()
 
-        # Step 7: Populate Semantic Cache for future identical or paraphrased queries
+        # Step 7: Populate Semantic Cache using standalone_query
         if (
             full_response_text
             and not full_response_text.startswith("Error")
@@ -365,7 +440,7 @@ Context Sources:
             try:
                 semantic_cache.store(
                     tenant_id=tenant_id,
-                    query=query,
+                    query=standalone_query,
                     answer=full_response_text,
                     citations=citations,
                     document_id=document_id
@@ -373,10 +448,14 @@ Context Sources:
             except Exception as e:
                 print(f"[ChatService] Warning: Failed to populate semantic cache: {e}")
 
+        # Step 8: Background STM Summarization & LTM Extraction (zero added latency)
+        self._schedule_memory_maintenance(session_id, tenant_id, query, full_response_text)
+
         yield {
             "type": "done",
             "session_id": session_id,
             "message_id": asst_msg.id,
+            "rewritten_query": rewritten_query_out,
             "citations": citations,
             "cached": False,
             "cost_summary": cost_summary
@@ -397,6 +476,7 @@ Context Sources:
         full_text = ""
         citations = []
         final_session_id = session_id
+        rewritten_query = None
         is_cached = False
         cost_summary = {}
 
@@ -415,10 +495,12 @@ Context Sources:
             elif event["type"] == "done":
                 is_cached = event.get("cached", False)
                 cost_summary = event.get("cost_summary", {})
+                rewritten_query = event.get("rewritten_query")
 
         return {
             "session_id": final_session_id,
             "query": query,
+            "rewritten_query": rewritten_query,
             "answer": full_text,
             "citations": citations,
             "cached": is_cached,

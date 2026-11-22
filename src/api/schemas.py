@@ -64,10 +64,31 @@ class CitationItem(BaseModel):
 class ChatResponse(BaseModel):
     session_id: str
     query: str
+    rewritten_query: Optional[str] = None
     answer: str
     citations: List[CitationItem]
     cached: Optional[bool] = False
     cost_summary: Optional[Dict[str, Any]] = None
+
+
+# ==========================================
+# 4. LONG-TERM MEMORY SCHEMAS
+# ==========================================
+class TenantMemoryCreate(BaseModel):
+    tenant_id: str = Field(..., description="Target tenant ID")
+    memory_type: str = Field(default="fact", description="Memory category: glossary, preference, or fact")
+    key: str = Field(..., min_length=1, max_length=255, description="Short identifier or acronym")
+    value: str = Field(..., min_length=1, description="Memory content or definition")
+
+
+class TenantMemoryResponse(BaseModel):
+    id: str
+    tenant_id: str
+    memory_type: str
+    key: str
+    value: str
+    created_at: datetime
+    updated_at: datetime
 
 
 class ChatSessionResponse(BaseModel):
